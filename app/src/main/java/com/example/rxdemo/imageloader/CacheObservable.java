@@ -14,9 +14,11 @@ public abstract class CacheObservable {
         return Observable.create(new ObservableOnSubscribe<Image>() {
             @Override
             public void subscribe(ObservableEmitter<Image> e) throws Exception {
-                Image image = getDataFromCache(url);
-                e.onNext(image);
-                e.onComplete();
+                if (!e.isDisposed()) {
+                    Image image = getDataFromCache(url);
+                    e.onNext(image);
+                    e.onComplete();
+                }
             }
         });
     }
