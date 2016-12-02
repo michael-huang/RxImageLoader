@@ -3,6 +3,11 @@ package com.example.rxdemo.imageloader;
 import android.content.Context;
 import android.widget.ImageView;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
+
+
 /**
  * Created by huangyanzhen on 2016/12/2.
  */
@@ -11,8 +16,10 @@ public class RxImageLoader {
 
     private static RxImageLoader singleton;
     private String mUrl;
+    private RequestCreator mRequestCreator;
 
     private RxImageLoader() {
+        mRequestCreator = new RequestCreator();
     }
 
     public static RxImageLoader with(Context context) {
@@ -47,7 +54,21 @@ public class RxImageLoader {
         return singleton;
     }
 
-    public void into(ImageView imageView) {
-
+    public void into(final ImageView imageView) {
+        Observable.concat(mRequestCreator.getImageFromMemory(mUrl),
+                mRequestCreator.getImageFromDisk(mUrl),
+                mRequestCreator.getImageFromNetwork(mUrl))
+                .filter(new Predicate<Image>() {
+                    @Override
+                    public boolean test(Image image) throws Exception {
+                        return image != null;
+                    }
+                }).firstElement()
+                .subscribe(new Consumer<Image>() {
+            @Override
+            public void accept(Image image) throws Exception {
+                imageView.setImageBitmap(image.getBitmap());
+            }
+        });
     }
 }
