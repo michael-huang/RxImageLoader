@@ -3,6 +3,8 @@ package com.example.rxdemo.imageloader;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by huangyanzhen on 2016/12/3.
@@ -20,7 +22,7 @@ public abstract class CacheObservable {
                     e.onComplete();
                 }
             }
-        });
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     public abstract Image getDataFromCache(String url);
