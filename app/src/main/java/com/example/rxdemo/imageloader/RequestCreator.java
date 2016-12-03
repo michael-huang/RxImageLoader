@@ -23,11 +23,29 @@ public class RequestCreator {
     }
 
     public Observable<Image> getImageFromMemory(String url) {
-        return mMemoryCacheObservable.getImage(url);
+        return mMemoryCacheObservable.getImage(url)
+                .filter(new Predicate<Image>() {
+                    @Override
+                    public boolean test(Image image) throws Exception {
+                        return image != null;
+                    }
+                });
     }
 
     public Observable<Image> getImageFromDisk(String url) {
-        return mDiskCacheObservable.getImage(url);
+        return mDiskCacheObservable.getImage(url)
+                .filter(new Predicate<Image>() {
+                    @Override
+                    public boolean test(Image image) throws Exception {
+                        return image != null;
+                    }
+                })
+                .doOnNext(new Consumer<Image>() {
+                    @Override
+                    public void accept(Image image) throws Exception {
+                        mMemoryCacheObservable.putDataIntoCache(image);
+                    }
+                });
     }
 
     public Observable<Image> getImageFromNetwork(String url) {
