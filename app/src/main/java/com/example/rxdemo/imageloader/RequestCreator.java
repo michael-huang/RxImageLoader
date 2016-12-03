@@ -1,5 +1,7 @@
 package com.example.rxdemo.imageloader;
 
+import android.content.Context;
+
 import io.reactivex.Observable;
 
 /**
@@ -12,9 +14,9 @@ public class RequestCreator {
     private DiskCacheObservable mDiskCacheObservable;
     private NetworkCacheObservable mNetworkCacheObservable;
 
-    public RequestCreator() {
+    public RequestCreator(Context context) {
         mMemoryCacheObservable = new MemoryCacheObservable();
-        mDiskCacheObservable = new DiskCacheObservable();
+        mDiskCacheObservable = new DiskCacheObservable(context);
         mNetworkCacheObservable = new NetworkCacheObservable();
     }
 

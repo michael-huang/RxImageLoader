@@ -18,8 +18,8 @@ public class RxImageLoader {
     private String mUrl;
     private RequestCreator mRequestCreator;
 
-    private RxImageLoader() {
-        mRequestCreator = new RequestCreator();
+    private RxImageLoader(Builder builder) {
+        mRequestCreator = new RequestCreator(builder.context);
     }
 
     public static RxImageLoader with(Context context) {
@@ -45,7 +45,7 @@ public class RxImageLoader {
         }
 
         public RxImageLoader build() {
-            return new RxImageLoader();
+            return new RxImageLoader(this);
         }
     }
 
