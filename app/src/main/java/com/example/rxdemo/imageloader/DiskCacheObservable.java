@@ -80,7 +80,7 @@ public class DiskCacheObservable extends CacheObservable {
             // get corresponding cache from key
             snapshot = mDiskLruCache.get(key);
 
-            if (fileDescriptor != null) {
+            if (snapshot != null) {
                 fileInputStream = (FileInputStream) snapshot.getInputStream(0);
                 fileDescriptor = fileInputStream.getFD();
             }
