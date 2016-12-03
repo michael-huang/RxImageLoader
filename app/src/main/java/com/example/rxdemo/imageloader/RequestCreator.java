@@ -1,6 +1,7 @@
 package com.example.rxdemo.imageloader;
 
 import android.content.Context;
+import android.util.Log;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
@@ -11,6 +12,8 @@ import io.reactivex.functions.Predicate;
  */
 
 public class RequestCreator {
+
+    private static final String TAG = RequestCreator.class.getSimpleName();
 
     private MemoryCacheObservable mMemoryCacheObservable;
     private DiskCacheObservable mDiskCacheObservable;
@@ -29,6 +32,12 @@ public class RequestCreator {
                     public boolean test(Image image) throws Exception {
                         return image != null;
                     }
+                })
+                .doOnNext(new Consumer<Image>() {
+                    @Override
+                    public void accept(Image image) throws Exception {
+                        Log.d(TAG, "get image from memory");
+                    }
                 });
     }
 
@@ -44,6 +53,7 @@ public class RequestCreator {
                     @Override
                     public void accept(Image image) throws Exception {
                         mMemoryCacheObservable.putDataIntoCache(image);
+                        Log.d(TAG, "get image from disk");
                     }
                 });
     }
@@ -61,6 +71,7 @@ public class RequestCreator {
             public void accept(Image image) throws Exception {
                 mDiskCacheObservable.putDataIntoCache(image);
                 mMemoryCacheObservable.putDataIntoCache(image);
+                Log.d(TAG, "get image from network");
             }
         });
     }
