@@ -18,7 +18,11 @@ public abstract class CacheObservable {
             public void subscribe(ObservableEmitter<Image> e) throws Exception {
                 if (!e.isDisposed()) {
                     Image image = getDataFromCache(url);
-                    e.onNext(image);
+
+                    // Null values are generally not allowed in 2.x operators and sources
+                    if (image != null) {
+                        e.onNext(image);
+                    }
                     e.onComplete();
                 }
             }
