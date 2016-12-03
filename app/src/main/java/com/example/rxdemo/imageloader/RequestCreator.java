@@ -3,6 +3,8 @@ package com.example.rxdemo.imageloader;
 import android.content.Context;
 
 import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
 
 /**
  * Created by huangyanzhen on 2016/12/3.
@@ -29,6 +31,19 @@ public class RequestCreator {
     }
 
     public Observable<Image> getImageFromNetwork(String url) {
-        return mNetworkCacheObservable.getImage(url);
+        return mNetworkCacheObservable.getImage(url)
+                .filter(new Predicate<Image>() {
+                    @Override
+                    public boolean test(Image image) throws Exception {
+                        return image != null;
+                    }
+                })
+                .doOnNext(new Consumer<Image>() {
+            @Override
+            public void accept(Image image) throws Exception {
+                mDiskCacheObservable.putDataIntoCache(image);
+                mMemoryCacheObservable.putDataIntoCache(image);
+            }
+        });
     }
 }
