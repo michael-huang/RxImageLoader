@@ -30,6 +30,6 @@ public class MemoryCacheObservable extends CacheObservable {
 
     @Override
     public void putDataIntoCache(Image image) {
-
+        mLruCache.put(image.getUrl(), image.getBitmap());
     }
 }

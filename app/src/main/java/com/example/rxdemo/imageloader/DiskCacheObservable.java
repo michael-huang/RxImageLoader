@@ -7,10 +7,20 @@ import android.graphics.BitmapFactory;
 import com.example.rxdemo.libcore.io.DiskCacheUtil;
 import com.example.rxdemo.libcore.io.DiskLruCache;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by huangyanzhen on 2016/12/3.
@@ -37,8 +47,13 @@ public class DiskCacheObservable extends CacheObservable {
     }
 
     @Override
-    public void putDataIntoCache(Image image) {
-
+    public void putDataIntoCache(final Image image) {
+        Observable.create(new ObservableOnSubscribe<Image>() {
+            @Override
+            public void subscribe(ObservableEmitter<Image> e) throws Exception {
+                putDataToDiskLruCache(image);
+            }
+        }).subscribeOn(Schedulers.io()).subscribe();
     }
 
     private void initDiskLruCache() {
@@ -88,5 +103,67 @@ public class DiskCacheObservable extends CacheObservable {
             }
         }
         return null;
+    }
+
+    private void putDataToDiskLruCache(Image image) {
+
+        try {
+            // generate corresponding key from url
+            String key = DiskCacheUtil.getMd5String(image.getUrl());
+            // get Editor
+            DiskLruCache.Editor editor = mDiskLruCache.edit(key);
+            if (editor != null) {
+                // get Outputstream from editor
+                OutputStream outputStream = editor.newOutputStream(0);
+                // download image and save to DiskLruCache
+                boolean isSuccessful = download(image.getUrl(), outputStream);
+
+                if (isSuccessful) {
+                    editor.commit();
+                } else {
+                    editor.abort();
+                }
+                mDiskLruCache.flush();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean download(String urlString, OutputStream outputStream) {
+        HttpURLConnection urlConnection = null;
+        BufferedOutputStream bufferedOutputStream = null;
+        BufferedInputStream bufferedInputStream = null;
+
+        try {
+            final URL url = new URL(urlString);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            bufferedInputStream = new BufferedInputStream(urlConnection.getInputStream(), 8 * 1024);
+            bufferedOutputStream = new BufferedOutputStream(outputStream, 8 * 1024);
+            int b;
+            while ((b = bufferedInputStream.read()) != -1) {
+                bufferedOutputStream.write(b);
+            }
+            return true;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            try {
+                if (bufferedOutputStream != null) {
+                    bufferedOutputStream.close();
+                }
+                if (bufferedInputStream != null) {
+                    bufferedInputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
     }
 }
